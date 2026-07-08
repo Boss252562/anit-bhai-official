@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:linear-gradient(135deg,#00c6ff,#0072ff);
+  text-align:center;
+}
+
+.box{
+  background:#fff;
+  padding:20px;
+  margin:50px auto;
+  width:90%;
+  max-width:350px;
+  border-radius:10px;
+}
+
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+}
+
+h1{
+  font-size:22px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="box" id="mainBox">
+
+<select onchange="setLang(this.value)">
+  <option value="en">English</option>
+  <option value="bn">বাংলা</option>
+  <option value="hi">Hindi</option>
+</select>
+
+<h2 id="title">Register</h2>
+
+<input id="name" placeholder="Name">
+<input id="phone" placeholder="Mobile Number">
+<input id="email" placeholder="Email">
+
+<select id="gender">
+  <option value="">Gender</option>
+  <option>Male</option>
+  <option>Female</option>
+</select>
+
+<button onclick="register()" id="btn">Register</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyExample",
+  authDomain: "anit-bhai-official.firebaseapp.com",
+  projectId: "anit-bhai-official"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+window.onload = function(){
+if(localStorage.getItem("submitted") === "yes"){
+document.getElementById("mainBox").innerHTML = `
+<h1 style="color:green;">✅ REGISTRATION SUBMITTED</h1>
+<p>You already registered</p>
+`;
+}
+};
+
+const langData = {
+en:{title:"Register",name:"Name",phone:"Mobile Number",email:"Email",gender:"Gender",btn:"Register",success:"SUCCESS",fill:"Fill all fields",invalidName:"Enter valid full name",invalidPhone:"Invalid phone",invalidEmail:"Invalid email"},
+bn:{title:"রেজিস্ট্রেশন",name:"নাম",phone:"মোবাইল নাম্বার",email:"ইমেইল",gender:"লিঙ্গ",btn:"রেজিস্টার",success:"সফল হয়েছে",fill:"সব ঘর পূরণ করুন",invalidName:"সঠিক পূর্ণ নাম দিন",invalidPhone:"সঠিক নাম্বার দিন",invalidEmail:"সঠিক ইমেইল দিন"},
+hi:{title:"रजिस्टर",name:"नाम",phone:"मोबाइल नंबर",email:"ईमेल",gender:"लिंग",btn:"रजिस्टर",success:"सफल",fill:"सभी भरें",invalidName:"पूरा सही नाम डालें",invalidPhone:"सही नंबर डालें",invalidEmail:"सही ईमेल डालें"}
+};
+
+let currentLang = "en";
+
+function setLang(lang){
+currentLang = lang;
+let t = langData[lang];
+document.getElementById("title").innerText = t.title;
+document.getElementById("name").placeholder = t.name;
+document.getElementById("phone").placeholder = t.phone;
+document.getElementById("email").placeholder = t.email;
+document.getElementById("btn").innerText = t.btn;
+}
+
+function register(){
+let t = langData[currentLang];
+let name = document.getElementById("name").value.trim();
+let phone = document.getElementById("phone").value.trim();
+let email = document.getElementById("email").value.trim();
+let gender = document.getElementById("gender").value;
+
+if(!name || !phone || !email || !gender){ alert(t.fill); return; }
+
+if(!/^[A-Za-z]+ [A-Za-z]+$/.test(name)){ alert(t.invalidName); return; }
+
+if(!/^[6-9][0-9]{9}$/.test(phone)){ alert(t.invalidPhone); return; }
+
+if(!/^\S+@\S+\.\S+$/.test(email)){ alert(t.invalidEmail); return; }
+
+if(localStorage.getItem("submitted") === "yes"){ alert("Already Submitted ❌"); return; }
+
+db.collection("users").add({ name, phone, email, gender, time:new Date() })
+.then(()=>{
+alert("🎉 " + t.success);
+localStorage.setItem("submitted","yes");
+document.getElementById("mainBox").innerHTML = `<h1 style="color:green;">✅ REGISTRATION SUBMITTED</h1><p>Thank you</p>`;
+})
+.catch(e=>{ alert("Error: "+e); });
+
+}
+
+</script>
+
+</body>
+</html>
