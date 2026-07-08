@@ -25,12 +25,8 @@ input,select,button{
   margin:6px 0;
 }
 
-#preview{
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  display:none;
-  margin:10px auto;
+h1{
+  font-size:22px;
 }
 </style>
 
@@ -48,15 +44,6 @@ input,select,button{
 
 <h2 id="title">Register</h2>
 
-<!-- 🔥 PHOTO UPLOAD -->
-<input type="file" id="photo" accept="image/*">
-
-<p style="color:red; font-size:12px;">
-⚠️ Only real profile photo allowed (Max 1MB)
-</p>
-
-<img id="preview">
-
 <input id="name" placeholder="Name">
 <input id="phone" placeholder="Mobile Number">
 <input id="email" placeholder="Email">
@@ -73,59 +60,27 @@ input,select,button{
 
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
 
-// Firebase Config
+// ✅ Firebase config ঠিক আছে
 const firebaseConfig = {
   apiKey: "AIzaSyBjzPnAp5thWHB4tDHhpzogZAWHhpXxFmg",
   authDomain: "anit-bhai-official.firebaseapp.com",
-  projectId: "anit-bhai-official"
+  projectId: "anit-bhai-official",
+  storageBucket: "anit-bhai-official.firebasestorage.app",
+  messagingSenderId: "708022846711",
+  appId: "1:708022846711:web:b2c40581c80cd6928cbff2",
+  measurementId: "G-YF1BM7W85R"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 //////////////////////
-// 🔥 PHOTO VALIDATION + PREVIEW
-//////////////////////
-document.getElementById("photo").addEventListener("change", function(e){
-
-  const file = e.target.files[0];
-
-  if(!file) return;
-
-  // ❌ Only image
-  if(!file.type.startsWith("image/")){
-    alert("❌ Only image allowed");
-    e.target.value = "";
-    return;
-  }
-
-  // ❌ Size limit 1MB
-  if(file.size > 1024 * 1024){
-    alert("❌ Image too large (Max 1MB)");
-    e.target.value = "";
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = function(){
-    document.getElementById("preview").src = reader.result;
-    document.getElementById("preview").style.display = "block";
-
-    localStorage.setItem("userPhoto", reader.result);
-  }
-
-  reader.readAsDataURL(file);
-});
-
-//////////////////////
-// PAGE LOAD CHECK
+// ALREADY SUBMITTED CHECK
 //////////////////////
 window.onload = function(){
 if(localStorage.getItem("submitted") === "yes"){
@@ -150,7 +105,6 @@ let currentLang = "en";
 function setLang(lang){
 currentLang = lang;
 let t = langData[lang];
-
 document.getElementById("title").innerText = t.title;
 document.getElementById("name").placeholder = t.name;
 document.getElementById("phone").placeholder = t.phone;
@@ -159,7 +113,7 @@ document.getElementById("btn").innerText = t.btn;
 }
 
 //////////////////////
-// REGISTER
+// REGISTER FUNCTION
 //////////////////////
 function register(){
 
@@ -169,43 +123,44 @@ let name = document.getElementById("name").value.trim();
 let phone = document.getElementById("phone").value.trim();
 let email = document.getElementById("email").value.trim();
 let gender = document.getElementById("gender").value;
-let photo = localStorage.getItem("userPhoto") || "";
 
 // validation
 if(!name || !phone || !email || !gender){
-  alert(t.fill);
-  return;
+alert(t.fill);
+return;
 }
 
-// name
+// name validation (2 words)
 if(!/^[A-Za-z]+ [A-Za-z]+$/.test(name)){
-  alert(t.invalidName);
-  return;
+alert(t.invalidName);
+return;
 }
 
-// phone
+// phone validation (India)
 if(!/^[6-9][0-9]{9}$/.test(phone)){
-  alert(t.invalidPhone);
-  return;
+alert(t.invalidPhone);
+return;
 }
 
-// email
+// email validation
 if(!/^\S+@\S+\.\S+$/.test(email)){
-  alert(t.invalidEmail);
-  return;
+alert(t.invalidEmail);
+return;
 }
 
-// already
+// prevent duplicate
 if(localStorage.getItem("submitted") === "yes"){
-  alert("Already Submitted ❌");
-  return;
+alert("Already Submitted ❌");
+return;
 }
 
-// SAVE
+// 🔥 FIRESTORE SAVE
 db.collection("users").add({
-  name, phone, email, gender,
-  photo: photo,
-  time:new Date()
+name: name,
+phone: phone,
+email: email,
+gender: gender,
+time: new Date()
 })
 .then(()=>{
 alert("🎉 " + t.success);
@@ -216,8 +171,8 @@ document.getElementById("mainBox").innerHTML = `
 <p>Thank you</p>
 `;
 })
-.catch(e=>{
-alert("Error: "+e);
+.catch((e)=>{
+alert("Error: " + e);
 });
 
 }
